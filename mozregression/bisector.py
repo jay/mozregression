@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import datetime
 import math
 import threading
 from mozlog import get_proxy_logger
@@ -22,6 +23,10 @@ def compute_steps_left(steps):
     if steps <= 1:
         return 0
     return math.trunc(math.log(steps, 2))
+
+
+def get_date(d):
+    return datetime.date(d.year, d.month, d.day)
 
 
 class BisectorHandler:
@@ -152,15 +157,17 @@ class NightlyHandler(BisectorHandler):
             )
 
     def _print_progress(self, new_data):
-        next_good_date = new_data[0].build_date
-        next_bad_date = new_data[-1].build_date
+        current_good_date = get_date(self.good_date)
+        current_bad_date = get_date(self.bad_date)
+        next_good_date = get_date(new_data[0].build_date)
+        next_bad_date = get_date(new_data[-1].build_date)
         next_days_range = abs((next_bad_date - next_good_date).days)
         LOG.info("Narrowed nightly regression window from"
                  " [%s, %s] (%d days) to [%s, %s] (%d days)"
                  " (~%d steps left)"
-                 % (self.good_date,
-                    self.bad_date,
-                    abs((self.bad_date - self.good_date).days),
+                 % (current_good_date,
+                    current_bad_date,
+                    abs((current_bad_date - current_good_date).days),
                     next_good_date,
                     next_bad_date,
                     next_days_range,
